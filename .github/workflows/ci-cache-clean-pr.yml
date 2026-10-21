@@ -10,6 +10,7 @@ on:
 
 jobs:
   cleanup:
+    if: github.event.repository.fork != true
     runs-on: ubuntu-latest
     permissions:
       # `actions:write` permission is required to delete caches

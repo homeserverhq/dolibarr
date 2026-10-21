@@ -27,6 +27,7 @@ env:
   CACHE_KEY_PART: ${{ ( inputs.gh_event == 'pull_request' || github.event_name == 'pull_request' ) && format('{0}-{1}', github.base_ref, github.head_ref) || github.ref_name }}
 jobs:
   phpstan:
+    if: github.event.repository.fork != true
     runs-on: ubuntu-latest
     permissions:
       contents: write

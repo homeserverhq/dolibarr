@@ -12,6 +12,7 @@ permissions: {} # none
 
 jobs:
   stale:
+    if: github.event.repository.fork != true
     permissions:
       issues: write
     runs-on: ubuntu-latest
