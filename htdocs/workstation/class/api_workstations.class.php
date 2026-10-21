@@ -182,6 +182,148 @@ class Workstations extends DolibarrApi
 		return $obj_ret;
 	}
 
+	/**
+	 * Create workstation object
+	 *
+	 * @param  array $request_data		Request data
+	 * @phan-param ?array<string,string> $request_data
+	 * @phpstan-param ?array<string,string> $request_data
+	 * @return array					Created workstation
+	 *
+	 * @url POST
+	 *
+	 * @throws RestException 400
+	 * @throws RestException 403
+	 * @throws RestException 500
+	 */
+	public function post($request_data = null)
+	{
+		if (!DolibarrApiAccess::$user->rights->workstation->workstation->write) {
+			throw new RestException(403);
+		}
+
+		foreach ($request_data ?: array() as $field => $value) {
+			if ($field == 'id' || $field == 'rowid') {
+				throw new RestException(400, 'Creating with id field is forbidden');
+			}
+			if ($field === 'caller') {
+				// Add a mention of caller so on trigger called after action, we can filter to avoid a loop if we try to sync back again with the caller
+				$this->workstation->context['caller'] = sanitizeVal($request_data['caller'], 'aZ09');
+				continue;
+			}
+			if ($field == 'array_options' && is_array($value)) {
+				foreach ($value as $index => $val) {
+					$this->workstation->array_options[$index] = $this->_checkValForAPI('extrafields', $val, $this->workstation);
+				}
+				continue;
+			}
+			$this->workstation->$field = $this->_checkValForAPI($field, $value, $this->workstation);
+		}
+
+		$id = $this->workstation->create(DolibarrApiAccess::$user);
+		if ($id <= 0) {
+			throw new RestException(500, $this->workstation->errorsToString());
+		}
+
+		return $this->get($id);
+	}
+
+	/**
+	 * Update workstation object
+	 *
+	 * @param  int   $id				ID of workstation
+	 * @param  array $request_data		Request data
+	 * @phan-param ?array<string,string> $request_data
+	 * @phpstan-param ?array<string,string> $request_data
+	 * @return array					Updated workstation
+	 *
+	 * @url PUT {id}
+	 *
+	 * @throws RestException 400
+	 * @throws RestException 403
+	 * @throws RestException 404
+	 * @throws RestException 500
+	 */
+	public function put($id, $request_data = null)
+	{
+		if (!DolibarrApiAccess::$user->rights->workstation->workstation->write) {
+			throw new RestException(403);
+		}
+
+		$result = $this->workstation->fetch($id);
+		if (!$result) {
+			throw new RestException(404, 'Workstation not found');
+		}
+
+		if (!DolibarrApi::_checkAccessToResource('workstation', $this->workstation->id)) {
+			throw new RestException(403, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
+		}
+
+		foreach ($request_data ?: array() as $field => $value) {
+			if ($field == 'id' || $field == 'rowid') {
+				continue;
+			}
+			if ($field === 'caller') {
+				// Add a mention of caller so on trigger called after action, we can filter to avoid a loop if we try to sync back again with the caller
+				$this->workstation->context['caller'] = sanitizeVal($request_data['caller'], 'aZ09');
+				continue;
+			}
+			if ($field == 'array_options' && is_array($value)) {
+				foreach ($value as $index => $val) {
+					$this->workstation->array_options[$index] = $this->_checkValForAPI('extrafields', $val, $this->workstation);
+				}
+				continue;
+			}
+			$this->workstation->$field = $this->_checkValForAPI($field, $value, $this->workstation);
+		}
+
+		$result = $this->workstation->update(DolibarrApiAccess::$user);
+		if ($result <= 0) {
+			throw new RestException(500, $this->workstation->errorsToString());
+		}
+
+		return $this->get($id);
+	}
+
+	/**
+	 * Delete workstation
+	 *
+	 * @param  int $id		ID of workstation
+	 * @return array		Object with success information
+	 *
+	 * @url DELETE {id}
+	 *
+	 * @throws RestException 403
+	 * @throws RestException 404
+	 * @throws RestException 500
+	 */
+	public function delete($id)
+	{
+		if (!DolibarrApiAccess::$user->rights->workstation->workstation->delete) {
+			throw new RestException(403);
+		}
+
+		$result = $this->workstation->fetch($id);
+		if (!$result) {
+			throw new RestException(404, 'Workstation not found');
+		}
+
+		if (!DolibarrApi::_checkAccessToResource('workstation', $this->workstation->id)) {
+			throw new RestException(403, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
+		}
+
+		if ($this->workstation->delete(DolibarrApiAccess::$user) <= 0) {
+			throw new RestException(500, $this->workstation->errorsToString());
+		}
+
+		return array(
+			'success' => array(
+				'code' => 200,
+				'message' => 'Workstation deleted'
+			)
+		);
+	}
+
 	// phpcs:disable PEAR.NamingConventions.ValidFunctionName.PublicUnderscore
 	/**
 	 * Clean sensible object datas

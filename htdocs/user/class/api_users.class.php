@@ -921,7 +921,7 @@ class Users extends DolibarrApi
 		}
 		$this->useraccount->oldcopy = clone $this->useraccount; // @phan-suppress-current-line PhanTypeMismatchProperty
 
-		if (!$this->useraccount->delete(DolibarrApiAccess::$user)) {
+		if ($this->useraccount->delete(DolibarrApiAccess::$user) < 0) {
 			throw new RestException(500);
 		}
 

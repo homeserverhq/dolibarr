@@ -1235,7 +1235,7 @@ class Ticket extends CommonObject
 
 				$dir = DOL_DATA_ROOT.'/'.$this->element.'/'.$this->ref;
 				// For remove dir
-				if (dol_is_dir($dir)) {
+				if (is_dir($dir)) {
 					if (!dol_delete_dir_recursive($dir)) {
 						$this->errors[] = $this->error;
 					}
@@ -2599,7 +2599,7 @@ class Ticket extends CommonObject
 		// Copy files into ticket directory
 		$destdir = $conf->ticket->dir_output.'/'.$this->ref;
 
-		if (!dol_is_dir($destdir)) {
+		if (!is_dir($destdir)) {
 			dol_mkdir($destdir);
 		}
 

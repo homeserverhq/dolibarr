@@ -1073,13 +1073,13 @@ class Thirdparties extends DolibarrApi
 			throw new RestException(400, 'Thirdparty ID is mandatory');
 		}
 
-		if (!DolibarrApi::_checkAccessToResource('societe', $id)) {
-			throw new RestException(403, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
+		$result = $this->company->fetch($id);
+		if ($result <= 0) {
+			throw new RestException(404, 'Thirdparty not found');
 		}
 
-		$result = $this->company->fetch($id);
-		if (!is_array($result)) {
-			throw new RestException(404, 'Thirdparty not found');
+		if (!DolibarrApi::_checkAccessToResource('societe', $this->company->id)) {
+			throw new RestException(403, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
 		}
 
 		$result = $this->company->getSalesRepresentatives(DolibarrApiAccess::$user, $mode);
